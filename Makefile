@@ -1,15 +1,22 @@
 TOP        = top_tb
 SIM        = sim
 
-SOURCES    = dut.sv top.sv top_tb.sv
+VERIF_FILES  = verif.f
+RTL_FILES    = rtl.f
 
-all: compile elaborate run
+RTL_LIB     = myrtl
+TB_LIB      = tb
 
-compile:
-	xvlog $(SOURCES) --sv --work mylib
+all: comp_rtl comp_tb elab run
+
+comp_rtl:
+	xvlog -f $(RTL_FILES) --sv --work $(RTL_LIB)
+
+comp_tb:
+	xvlog -f $(VERIF_FILES) --sv --work $(TB_LIB)
 
 elab:
-	xelab mylib.$(TOP) -s $(SIM)
+	xelab $(TB_LIB).$(TOP) -s $(SIM)
 
 run:
 	xsim $(SIM) -runall
@@ -17,4 +24,4 @@ run:
 clean:
 	rm -rf  xsim.dir *.log *.jou *.pb
 
-.PHONY: all compile elaborate run clean
+.PHONY: all comp_rtl comp_tb run clean

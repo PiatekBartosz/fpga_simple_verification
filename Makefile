@@ -7,6 +7,9 @@ RTL_FILES    = rtl.f
 RTL_LIB     = myrtl
 TB_LIB      = tb
 
+#TODO: 
+# verbose.....
+
 all: comp_rtl comp_tb elab run
 
 comp_rtl:

@@ -1,8 +1,6 @@
 module dut (
-    input  logic [7:0] a,
-    input  logic [7:0] b,
-    output logic [8:0] y
+    input  logic i_clk,
+    input  logic i_rtsn
 );
-    assign y = a + b;
 
 endmodule

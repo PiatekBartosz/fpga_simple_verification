@@ -1,3 +1,4 @@
+interfaces.sv
 controller.sv
-AT24CM02.v
+24CSM01.v
 dut.sv

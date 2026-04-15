@@ -1,11 +1,16 @@
-TOP        = top_tb
-SIM        = sim
+### Options ###
+WAVE ?= 0
+###############
 
-VERIF_FILES  = verif.f
-RTL_FILES    = rtl.f
-
+TOP         = top
+SIM         = sim
+RTL_FILES   = rtl.f
+VERIF_FILES = verif.f
 RTL_LIB     = myrtl
 TB_LIB      = tb
+WDB         = waves.wdb
+
+.PHONY: all comp_rtl comp_tb elab run waves clean
 
 all: comp_rtl comp_tb elab run
 
@@ -18,15 +23,25 @@ comp_tb:
 	@echo "\nComp TB Done!"
 
 elab:
-	xelab $(TB_LIB).$(TOP) -s $(SIM)
+ifeq ($(WAVE),1)
+	xelab $(TB_LIB).$(TOP) -s $(SIM) -L $(RTL_LIB) --debug typical
+else
+	xelab $(TB_LIB).$(TOP) -s $(SIM) -L $(RTL_LIB)
+endif
 	@echo "\nElab Done!"
 
 run:
+ifeq ($(WAVE),1)
+	xsim $(SIM) -runall -wdb $(WDB)
+	@echo "\nWaveforms saved to $(WDB)"
+else
 	xsim $(SIM) -runall
+endif
 	@echo "\nSim Done!"
 
-clean:
-	rm -rf  xsim.dir *.log *.jou *.pb
-	@echo "\nClean Done!"
+waves:
+	xsim --gui $(WDB) &
 
-.PHONY: all comp_rtl comp_tb run clean
+clean:
+	rm -rf xsim.dir *.log *.jou *.pb *.wdb *.wcfg
+	@echo "\nClean Done!"

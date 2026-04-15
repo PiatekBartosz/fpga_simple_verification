@@ -1,39 +1,56 @@
+// =============================================================================
+// dut.sv  -  Design Under Test
+//
+// Instantiates the I2C controller and the Microchip 24CSM01 memory model.
+// The I2C SDA bus is a shared inout wire (open-drain, pulled high).
+// SCL is driven solely by the controller (master).
+// =============================================================================
+
+`timescale 1ns/1ps
+
 module dut (
-    input  logic        i_clk,
-    input  logic        i_rtsn,
-
-    input  logic        i_valid,
-    output logic        o_ready,
-    input  logic [16:0] i_addr,
-    input  logic        i_rw,
-    input  logic [7:0]  i_wdata,
-    output logic [7:0]  o_rdata
+    input  logic        clk,
+    input  logic        rst_n,
+    input  logic [1:0]  op,
+    input  logic [16:0] addr,
+    input  logic [7:0]  wdata,
+    input  logic        start,
+    output logic [7:0]  rdata,
+    output logic        done,
+    output logic        busy,
+    output logic        error
 );
-    wire sda;
-    wire scl;
 
-    pullup(sda);
-    pullup(scl);
+wire scl;
+wire sda;
 
-    AT24CM02 model_inst(
-        .SDA(sda),
-        .SCL(scl),
-        .WP(1'b0)
-    );
+// Controller drives SCL and manages SDA as open-drain
+controller #(
+    .CLK_DIV   (62),
+    .CHIP_ADDR (2'b00)
+) u_ctrl (
+    .clk    (clk),
+    .rst_n  (rst_n),
+    .op     (op),
+    .addr   (addr),
+    .wdata  (wdata),
+    .start  (start),
+    .rdata  (rdata),
+    .done   (done),
+    .busy   (busy),
+    .error  (error),
+    .scl    (scl),
+    .sda    (sda)
+);
 
-    controller controller_inst(
-        .clk(i_clk),
-        .i_rtsn(i_rtsn),
-
-        .valid(i_valid),
-        .ready(i_ready),
-        .addr(i_addr),
-        .rw(i_rw),
-        .wdata(i_wdata),
-        .rdata(i_rdata),
-
-        .sda(sda),
-        .scl(scl)
-    );
+// 24CSM01 EEPROM model (A1=0, A2=0 matches CHIP_ADDR=2'b00)
+M24CSM01 u_mem (
+    .A1    (1'b0),
+    .A2    (1'b0),
+    .WP    (1'b0),
+    .SDA   (sda),
+    .SCL   (scl),
+    .RESET (1'b0)
+);
 
 endmodule

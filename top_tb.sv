@@ -56,7 +56,8 @@ module top_tb (
         fail_cnt = 0;
         repeat (10) @(posedge clk);
         sif.rst_n <= 1'b1;
-        repeat (5) @(posedge clk);
+        repeat (15)
+        @(posedge clk);
         $display("=== Simulation start ===");
 
         // SW_RESET
@@ -67,7 +68,8 @@ module top_tb (
         end else begin
             $display("[PASS] SW_RESET");
         end
-        repeat (5) @(posedge clk);
+        repeat (15)
+        @(posedge clk);
 
         // READ_ID
         run_op(OP_READ_ID, '0, '0, rd, fail);
@@ -80,7 +82,8 @@ module top_tb (
         end else begin
             $display("[PASS] READ_ID  ManID=0x%06X", rd);
         end
-        repeat (5) @(posedge clk);
+        repeat (15)
+        @(posedge clk);
 
         // READ_STATUS
         run_op(OP_READ_STATUS, '0, '0, rd, fail);
@@ -90,7 +93,8 @@ module top_tb (
         end else begin
             $display("[PASS] READ_STATUS  rdata=0x%02X", rd[7:0]);
         end
-        repeat (5) @(posedge clk);
+        repeat (15)
+        @(posedge clk);
 
         // WRITE_DATA
         run_op(OP_WRITE_DATA, 17'h0_0010, 8'hA5, rd, fail);

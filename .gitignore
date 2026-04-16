@@ -3,3 +3,4 @@ xsim.dir
 *.jou
 *.pb
 waves.wdb
+.Xil/*

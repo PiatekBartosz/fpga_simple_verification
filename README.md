@@ -1,5 +1,2 @@
 # Simple FPGA verification project
-
-
-# TODO: for lab2:
-wave form generation
+Simple verification of 24CSM01 I2C EEPROM IC

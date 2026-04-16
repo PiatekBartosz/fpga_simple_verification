@@ -10,7 +10,8 @@ RTL_LIB     = myrtl
 TB_LIB      = tb
 WDB         = waves.wdb
 
-SV_SOURCES  = interfaces.sv controller.sv dut.sv top.sv top_tb.sv
+# TODO: make it fetch the sources from *.f files
+FORMAT_SRC  = interfaces.sv controller.sv dut.sv top.sv top_tb.sv
 FORMAT_TOOL = verible-verilog-format
 FORMAT_ARGS = --flagfile=.verilog_format --inplace
 
@@ -47,7 +48,7 @@ waves:
 	xsim --gui $(WDB) &
 
 format:
-	$(FORMAT_TOOL) $(FORMAT_ARGS) $(SV_SOURCES)
+	$(FORMAT_TOOL) $(FORMAT_ARGS) $(FORMAT_SRC)
 	@echo "\nFormat Done!"
 
 clean:

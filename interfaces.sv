@@ -5,7 +5,7 @@ interface simple_if (
     input logic clk
 );
     logic rst_n, start, done, error;
-    logic [ 1:0] op;
+    logic [ 2:0] op;
     logic [ 7:0] wdata;
     logic [16:0] addr;
     logic [23:0] rdata;

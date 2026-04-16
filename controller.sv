@@ -8,7 +8,7 @@ module controller #(
     input  logic        clk,
     input  logic        rst_n,
     input  logic        start,
-    input  logic [ 1:0] op,
+    input  logic [ 2:0] op,
     input  logic [ 7:0] wdata,
     input  logic [16:0] addr,
     output logic [23:0] rdata,
@@ -18,10 +18,11 @@ module controller #(
     inout  wire         sda
 );
 
-    localparam OP_READ_ID = 2'b00;
-    localparam OP_READ_STATUS = 2'b01;
-    localparam OP_READ_DATA = 2'b10;
-    localparam OP_WRITE_DATA = 2'b11;
+    localparam OP_READ_ID = 3'b000;
+    localparam OP_READ_STATUS = 3'b001;
+    localparam OP_READ_DATA = 3'b010;
+    localparam OP_WRITE_DATA = 3'b011;
+    localparam OP_SW_RESET = 3'b100;
 
     logic sda_drive, scl_r;
     assign sda = sda_drive ? 1'b0 : 1'bz;
@@ -70,7 +71,7 @@ module controller #(
     logic   [$clog2(CLK_DIV+1)-1:0] cnt;
     wire                            cnt_done = (cnt == CLK_DIV - 1);
 
-    logic   [                  1:0] op_lat;
+    logic   [                  2:0] op_lat;
     logic   [                 16:0] addr_lat;
     logic [7:0] wdata_lat, tx_byte;
     logic [7:0] rx_shift, rx_latch, rx_byte1, rx_byte2;
@@ -82,7 +83,7 @@ module controller #(
         return {3'b101, eeprom, page, CHIP_ADDR[1], CHIP_ADDR[0], rw};
     endfunction
 
-    function automatic logic [7:0] first_ctrl(input logic [1:0] op_in, input logic [16:0] addr_in);
+    function automatic logic [7:0] first_ctrl(input logic [2:0] op_in, input logic [16:0] addr_in);
         case (op_in)
             OP_WRITE_DATA, OP_READ_DATA: return ctrl_byte(1'b0, addr_in[16], 1'b0);
             OP_READ_STATUS:              return ctrl_byte(1'b1, 1'b0, 1'b0);
@@ -93,7 +94,7 @@ module controller #(
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            state     <= ST_SR_SCL_LO;
+            state     <= ST_IDLE;
             cnt       <= '0;
             scl_r     <= 1'b1;
             sda_drive <= 1'b0;
@@ -126,8 +127,13 @@ module controller #(
                         addr_lat  <= addr;
                         wdata_lat <= wdata;
                         error     <= 1'b0;
-                        state     <= ST_S_SDA_LO;
                         cnt       <= 0;
+                        if (op == OP_SW_RESET) begin
+                            sr_clocks <= '0;
+                            state     <= ST_SR_SCL_LO;
+                        end else begin
+                            state <= ST_S_SDA_LO;
+                        end
                     end
                 end
 

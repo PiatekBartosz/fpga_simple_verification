@@ -9,10 +9,11 @@ module top_tb (
     localparam int WRITE_CYCLE_WAIT = 260_000;
     localparam int TIMEOUT = 500_000;
 
-    localparam logic [1:0] OP_READ_ID = 2'b00;
-    localparam logic [1:0] OP_READ_STATUS = 2'b01;
-    localparam logic [1:0] OP_READ_DATA = 2'b10;
-    localparam logic [1:0] OP_WRITE_DATA = 2'b11;
+    localparam logic [2:0] OP_READ_ID = 3'b000;
+    localparam logic [2:0] OP_READ_STATUS = 3'b001;
+    localparam logic [2:0] OP_READ_DATA = 3'b010;
+    localparam logic [2:0] OP_WRITE_DATA = 3'b011;
+    localparam logic [2:0] OP_SW_RESET = 3'b100;
 
     task automatic wait_completion(output logic timed_out);
         timed_out = 1'b0;
@@ -26,7 +27,7 @@ module top_tb (
         $display("[TB] TIMEOUT at %0t", $time);
     endtask
 
-    task automatic run_op(input logic [1:0] op_in, input logic [16:0] addr_in,
+    task automatic run_op(input logic [2:0] op_in, input logic [16:0] addr_in,
                           input logic [7:0] wdata_in, output logic [23:0] rdata_out,
                           output logic failed);
         logic timed_out;
@@ -55,7 +56,18 @@ module top_tb (
         fail_cnt = 0;
         repeat (10) @(posedge clk);
         sif.rst_n <= 1'b1;
+        repeat (5) @(posedge clk);
         $display("=== Simulation start ===");
+
+        // SW_RESET
+        run_op(OP_SW_RESET, '0, '0, rd, fail);
+        if (fail) begin
+            $display("[FAIL] SW_RESET");
+            fail_cnt++;
+        end else begin
+            $display("[PASS] SW_RESET");
+        end
+        repeat (5) @(posedge clk);
 
         // READ_ID
         run_op(OP_READ_ID, '0, '0, rd, fail);

@@ -5,7 +5,7 @@ module dut (
     input  logic        clk,
     input  logic        rst_n,
     input  logic        start,
-    input  logic [ 1:0] op,
+    input  logic [ 2:0] op,
     input  logic [ 7:0] wdata,
     input  logic [16:0] addr,
     output logic [23:0] rdata,

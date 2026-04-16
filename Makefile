@@ -10,7 +10,11 @@ RTL_LIB     = myrtl
 TB_LIB      = tb
 WDB         = waves.wdb
 
-.PHONY: all comp_rtl comp_tb elab run waves clean
+SV_SOURCES  = interfaces.sv controller.sv dut.sv top.sv top_tb.sv
+FORMAT_TOOL = verible-verilog-format
+FORMAT_ARGS = --flagfile=.verilog_format --inplace
+
+.PHONY: all comp_rtl comp_tb elab run waves format clean
 
 all: comp_rtl comp_tb elab run
 
@@ -41,6 +45,10 @@ endif
 
 waves:
 	xsim --gui $(WDB) &
+
+format:
+	$(FORMAT_TOOL) $(FORMAT_ARGS) $(SV_SOURCES)
+	@echo "\nFormat Done!"
 
 clean:
 	rm -rf xsim.dir *.log *.jou *.pb *.wdb *.wcfg

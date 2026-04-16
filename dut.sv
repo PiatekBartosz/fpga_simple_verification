@@ -3,16 +3,15 @@
 
 module dut (
     input  logic        clk,
-    input  logic        rst_n,
+    rst_n,
+    start,
+    sw_reset,
     input  logic [ 1:0] op,
-    input  logic [16:0] addr,
     input  logic [ 7:0] wdata,
-    input  logic        start,
-    input  logic        sw_reset,
+    input  logic [16:0] addr,
     output logic [23:0] rdata,
     output logic        done,
-    output logic        busy,
-    output logic        error
+    error
 );
 
     wire scl, sda;
@@ -31,7 +30,6 @@ module dut (
         .sw_reset(sw_reset),
         .rdata   (rdata),
         .done    (done),
-        .busy    (busy),
         .error   (error),
         .scl     (scl),
         .sda     (sda)

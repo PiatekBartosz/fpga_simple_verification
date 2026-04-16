@@ -19,7 +19,6 @@ module top;
         .sw_reset(sif.sw_reset),
         .rdata   (sif.rdata),
         .done    (sif.done),
-        .busy    (sif.busy),
         .error   (sif.error)
     );
 

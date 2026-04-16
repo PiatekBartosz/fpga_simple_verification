@@ -15,26 +15,15 @@ module top_tb (
     localparam logic [1:0] OP_WRITE_DATA = 2'b11;
 
     task automatic wait_completion(output logic timed_out);
-        int i;
         timed_out = 1'b0;
-        for (i = 0; i < TIMEOUT; i++) begin
+        for (int i = 0; i < TIMEOUT; i++) begin
             @(posedge clk);
-            if (sif.done || sif.error) return;
+            if (sif.done || sif.error) begin
+                return;
+            end
         end
         timed_out = 1'b1;
-        $display("[TB] TIMEOUT at time %0t", $time);
-    endtask
-
-    task automatic do_sw_reset();
-        logic timed_out;
-        $display("[TB] Issuing I2C software reset...");
-        @(posedge clk);
-        sif.sw_reset <= 1'b1;
-        @(posedge clk);
-        sif.sw_reset <= 1'b0;
-        wait_completion(timed_out);
-        if (timed_out) $display("[FAIL] SW_RESET timed out");
-        else $display("[PASS] SW_RESET complete");
+        $display("[TB] TIMEOUT at %0t", $time);
     endtask
 
     task automatic run_op(input logic [1:0] op_in, input logic [16:0] addr_in,
@@ -67,38 +56,56 @@ module top_tb (
         fail_cnt = 0;
         repeat (10) @(posedge clk);
         sif.rst_n <= 1'b1;
-        repeat (5) @(posedge clk);
-
+        repeat (25) @(posedge clk);  // hold SCL idle-high >= tHI (400 ns) before first operation
         $display("=== Simulation start ===");
 
-        do_sw_reset();
+        // SW_RESET
+        @(posedge clk);
+        sif.sw_reset <= 1'b1;
+        @(posedge clk);
+        sif.sw_reset <= 1'b0;
+        wait_completion(fail);
+        if (fail) begin
+            $display("[FAIL] SW_RESET");
+        end else begin
+            $display("[PASS] SW_RESET");
+        end
         repeat (5) @(posedge clk);
 
+        // READ_ID
         run_op(OP_READ_ID, '0, '0, rd, fail);
         if (fail) begin
             $display("[FAIL] READ_ID");
             fail_cnt++;
-        end else if (rd[23:0] !== 24'h00D0D0) begin
-            $display("[FAIL] READ_ID  got=0x%06X expected=0x00D0D0", rd[23:0]);
+        end else if (rd !== 24'h00D0D0) begin
+            $display("[FAIL] READ_ID got=0x%06X expected=0x00D0D0", rd);
             fail_cnt++;
-        end else $display("[PASS] READ_ID  ManID=0x%06X", rd[23:0]);
+        end else begin
+            $display("[PASS] READ_ID  ManID=0x%06X", rd);
+        end
         repeat (5) @(posedge clk);
 
+        // READ_STATUS
         run_op(OP_READ_STATUS, '0, '0, rd, fail);
         if (fail) begin
             $display("[FAIL] READ_STATUS");
             fail_cnt++;
-        end else $display("[PASS] READ_STATUS  rdata=0x%02X", rd[7:0]);
+        end else begin
+            $display("[PASS] READ_STATUS  rdata=0x%02X", rd[7:0]);
+        end
         repeat (5) @(posedge clk);
 
+        // WRITE_DATA
         run_op(OP_WRITE_DATA, 17'h0_0010, 8'hA5, rd, fail);
         if (fail) begin
             $display("[FAIL] WRITE_DATA");
             fail_cnt++;
-        end else $display("[PASS] WRITE_DATA addr=0x00010 data=0xA5");
-        $display("[TB] Waiting for EEPROM write cycle (5 ms)...");
+        end else begin
+            $display("[PASS] WRITE_DATA addr=0x00010 data=0xA5");
+        end
         repeat (WRITE_CYCLE_WAIT) @(posedge clk);
 
+        // READ_DATA
         run_op(OP_READ_DATA, 17'h0_0010, '0, rd, fail);
         if (fail) begin
             $display("[FAIL] READ_DATA");
@@ -106,7 +113,9 @@ module top_tb (
         end else if (rd[7:0] !== 8'hA5) begin
             $display("[FAIL] READ_DATA got=0x%02X expected=0xA5", rd[7:0]);
             fail_cnt++;
-        end else $display("[PASS] READ_DATA  rdata=0x%02X", rd[7:0]);
+        end else begin
+            $display("[PASS] READ_DATA  rdata=0x%02X", rd[7:0]);
+        end
 
         $display("=== %0d test(s) failed ===", fail_cnt);
         $finish;

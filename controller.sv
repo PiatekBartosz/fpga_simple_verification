@@ -6,15 +6,14 @@ module controller #(
     parameter logic [1:0] CHIP_ADDR = 2'b00
 ) (
     input  logic        clk,
-    rst_n,
-    start,
-    sw_reset,
+    input  logic        rst_n,
+    input  logic        start,
     input  logic [ 1:0] op,
     input  logic [ 7:0] wdata,
     input  logic [16:0] addr,
     output logic [23:0] rdata,
     output logic        done,
-    error,
+    output logic        error,
     output logic        scl,
     inout  wire         sda
 );
@@ -94,7 +93,7 @@ module controller #(
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            state     <= ST_IDLE;
+            state     <= ST_SR_SCL_LO;
             cnt       <= '0;
             scl_r     <= 1'b1;
             sda_drive <= 1'b0;
@@ -122,11 +121,7 @@ module controller #(
                     scl_r     <= 1'b1;
                     sda_drive <= 1'b0;
                     seq_step  <= '0;
-                    if (sw_reset) begin
-                        sr_clocks <= '0;
-                        state     <= ST_SR_SCL_LO;
-                        cnt       <= 0;
-                    end else if (start) begin
+                    if (start) begin
                         op_lat    <= op;
                         addr_lat  <= addr;
                         wdata_lat <= wdata;

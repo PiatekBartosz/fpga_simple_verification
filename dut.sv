@@ -3,15 +3,14 @@
 
 module dut (
     input  logic        clk,
-    rst_n,
-    start,
-    sw_reset,
+    input  logic        rst_n,
+    input  logic        start,
     input  logic [ 1:0] op,
     input  logic [ 7:0] wdata,
     input  logic [16:0] addr,
     output logic [23:0] rdata,
     output logic        done,
-    error
+    output logic        error
 );
 
     wire scl, sda;
@@ -21,18 +20,17 @@ module dut (
         .CLK_DIV  (62),
         .CHIP_ADDR(2'b00)
     ) u_ctrl (
-        .clk     (clk),
-        .rst_n   (rst_n),
-        .op      (op),
-        .addr    (addr),
-        .wdata   (wdata),
-        .start   (start),
-        .sw_reset(sw_reset),
-        .rdata   (rdata),
-        .done    (done),
-        .error   (error),
-        .scl     (scl),
-        .sda     (sda)
+        .clk  (clk),
+        .rst_n(rst_n),
+        .op   (op),
+        .addr (addr),
+        .wdata(wdata),
+        .start(start),
+        .rdata(rdata),
+        .done (done),
+        .error(error),
+        .scl  (scl),
+        .sda  (sda)
     );
 
     M24CSM01 u_mem (

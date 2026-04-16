@@ -2,5 +2,4 @@ xsim.dir
 *.log
 *.jou
 *.pb
-
-
+waves.wdb

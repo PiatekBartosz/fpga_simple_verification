@@ -47,30 +47,15 @@ module top_tb (
     logic        fail;
 
     initial begin
-        sif.rst_n    <= 1'b0;
-        sif.op       <= '0;
-        sif.addr     <= '0;
-        sif.wdata    <= '0;
-        sif.start    <= 1'b0;
-        sif.sw_reset <= 1'b0;
+        sif.rst_n <= 1'b0;
+        sif.op    <= '0;
+        sif.addr  <= '0;
+        sif.wdata <= '0;
+        sif.start <= 1'b0;
         fail_cnt = 0;
         repeat (10) @(posedge clk);
         sif.rst_n <= 1'b1;
-        repeat (25) @(posedge clk);  // hold SCL idle-high >= tHI (400 ns) before first operation
         $display("=== Simulation start ===");
-
-        // SW_RESET
-        @(posedge clk);
-        sif.sw_reset <= 1'b1;
-        @(posedge clk);
-        sif.sw_reset <= 1'b0;
-        wait_completion(fail);
-        if (fail) begin
-            $display("[FAIL] SW_RESET");
-        end else begin
-            $display("[PASS] SW_RESET");
-        end
-        repeat (5) @(posedge clk);
 
         // READ_ID
         run_op(OP_READ_ID, '0, '0, rd, fail);

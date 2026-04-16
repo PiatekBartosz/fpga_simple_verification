@@ -2,7 +2,8 @@
 // top_tb.sv  -  Testbench
 //
 // Tests:
-//   1. READ_ID      - reads Manufacturer ID byte 0
+//   0. SW_RESET     - issues I2C software reset before any operation
+//   1. READ_ID      - reads full 24-bit Manufacturer ID, expects 0x00D0D0
 //   2. READ_STATUS  - reads Security register byte at address 0x0800
 //   3. WRITE_DATA   - writes 0xA5 to EEPROM address 0x00010
 //   4. READ_DATA    - reads back from 0x00010, expects 0xA5
@@ -22,6 +23,9 @@ localparam logic [1:0] OP_READ_STATUS = 2'b01;
 localparam logic [1:0] OP_READ_DATA   = 2'b10;
 localparam logic [1:0] OP_WRITE_DATA  = 2'b11;
 
+// ---------------------------------------------------------------------------
+// Wait for controller to signal done or error
+// ---------------------------------------------------------------------------
 task automatic wait_completion(output logic timed_out);
     int i;
     timed_out = 1'b0;
@@ -33,11 +37,31 @@ task automatic wait_completion(output logic timed_out);
     $display("[TB] TIMEOUT at time %0t", $time);
 endtask
 
+// ---------------------------------------------------------------------------
+// Issue I2C software reset and wait for completion
+// ---------------------------------------------------------------------------
+task automatic do_sw_reset();
+    logic timed_out;
+    $display("[TB] Issuing I2C software reset...");
+    @(posedge clk);
+    sif.sw_reset <= 1'b1;
+    @(posedge clk);
+    sif.sw_reset <= 1'b0;
+    wait_completion(timed_out);
+    if (timed_out)
+        $display("[FAIL] SW_RESET timed out");
+    else
+        $display("[PASS] SW_RESET complete");
+endtask
+
+// ---------------------------------------------------------------------------
+// Run a normal operation
+// ---------------------------------------------------------------------------
 task automatic run_op(
     input  logic [1:0]  op_in,
     input  logic [16:0] addr_in,
     input  logic [7:0]  wdata_in,
-    output logic [7:0]  rdata_out,
+    output logic [23:0] rdata_out,
     output logic        failed
 );
     logic timed_out;
@@ -53,17 +77,19 @@ task automatic run_op(
     failed    = sif.error | timed_out;
 endtask
 
+// ---------------------------------------------------------------------------
 int  fail_cnt;
-logic [7:0] rd;
-logic       fail;
+logic [23:0] rd;
+logic        fail;
 
 initial begin
-    sif.rst_n <= 1'b0;
-    sif.op    <= '0;
-    sif.addr  <= '0;
-    sif.wdata <= '0;
-    sif.start <= 1'b0;
-    fail_cnt   = 0;
+    sif.rst_n    <= 1'b0;
+    sif.op       <= '0;
+    sif.addr     <= '0;
+    sif.wdata    <= '0;
+    sif.start    <= 1'b0;
+    sif.sw_reset <= 1'b0;
+    fail_cnt      = 0;
 
     repeat (10) @(posedge clk);
     sif.rst_n <= 1'b1;
@@ -71,16 +97,27 @@ initial begin
 
     $display("=== Simulation start ===");
 
-    // TEST 1: READ_ID
-    run_op(OP_READ_ID, '0, '0, rd, fail);
-    if (fail) begin $display("[FAIL] READ_ID"); fail_cnt++; end
-    else           $display("[PASS] READ_ID  rdata=0x%02X", rd);
+    // TEST 0: Software reset — clears any device state before first operation
+    do_sw_reset();
     repeat (5) @(posedge clk);
 
-    // TEST 2: READ_STATUS
+    // TEST 1: READ_ID — full 24-bit Manufacturer ID must equal 0x00D0D0
+    run_op(OP_READ_ID, '0, '0, rd, fail);
+    if (fail) begin
+        $display("[FAIL] READ_ID");
+        fail_cnt++;
+    end else if (rd[23:0] !== 24'h00D0D0) begin
+        $display("[FAIL] READ_ID  got=0x%06X expected=0x00D0D0", rd[23:0]);
+        fail_cnt++;
+    end else begin
+        $display("[PASS] READ_ID  ManID=0x%06X", rd[23:0]);
+    end
+    repeat (5) @(posedge clk);
+
+    // TEST 2: READ_STATUS — first byte of Security register (serial number)
     run_op(OP_READ_STATUS, '0, '0, rd, fail);
     if (fail) begin $display("[FAIL] READ_STATUS"); fail_cnt++; end
-    else           $display("[PASS] READ_STATUS  rdata=0x%02X", rd);
+    else           $display("[PASS] READ_STATUS  rdata=0x%02X", rd[7:0]);
     repeat (5) @(posedge clk);
 
     // TEST 3: WRITE_DATA  addr=0x00010  data=0xA5
@@ -93,9 +130,13 @@ initial begin
 
     // TEST 4: READ_DATA  addr=0x00010  expect=0xA5
     run_op(OP_READ_DATA, 17'h0_0010, '0, rd, fail);
-    if (fail) begin $display("[FAIL] READ_DATA"); fail_cnt++; end
-    else if (rd !== 8'hA5) begin $display("[FAIL] READ_DATA got=0x%02X expected=0xA5", rd); fail_cnt++; end
-    else                        $display("[PASS] READ_DATA  rdata=0x%02X", rd);
+    if (fail) begin
+        $display("[FAIL] READ_DATA"); fail_cnt++;
+    end else if (rd[7:0] !== 8'hA5) begin
+        $display("[FAIL] READ_DATA got=0x%02X expected=0xA5", rd[7:0]); fail_cnt++;
+    end else begin
+        $display("[PASS] READ_DATA  rdata=0x%02X", rd[7:0]);
+    end
 
     $display("=== %0d test(s) failed ===", fail_cnt);
     $finish;

@@ -1,9 +1,5 @@
 // =============================================================================
 // dut.sv  -  Design Under Test
-//
-// Instantiates the I2C controller and the Microchip 24CSM01 memory model.
-// The I2C SDA bus is a shared inout wire (open-drain, pulled high).
-// SCL is driven solely by the controller (master).
 // =============================================================================
 
 `timescale 1ns/1ps
@@ -15,7 +11,8 @@ module dut (
     input  logic [16:0] addr,
     input  logic [7:0]  wdata,
     input  logic        start,
-    output logic [7:0]  rdata,
+    input  logic        sw_reset,
+    output logic [23:0] rdata,
     output logic        done,
     output logic        busy,
     output logic        error
@@ -24,30 +21,28 @@ module dut (
 wire scl;
 wire sda;
 
-// Open-drain pull-up: weak '1' so any strong-0 driver (controller or device
-// bufif1) wins, while the bus floats high when both release.
+// Open-drain pull-up: weak '1' so any strong-0 driver wins.
 assign (pull1, highz0) sda = 1'b1;
 
-// Controller drives SCL and manages SDA as open-drain
 controller #(
     .CLK_DIV   (62),
     .CHIP_ADDR (2'b00)
 ) u_ctrl (
-    .clk    (clk),
-    .rst_n  (rst_n),
-    .op     (op),
-    .addr   (addr),
-    .wdata  (wdata),
-    .start  (start),
-    .rdata  (rdata),
-    .done   (done),
-    .busy   (busy),
-    .error  (error),
-    .scl    (scl),
-    .sda    (sda)
+    .clk      (clk),
+    .rst_n    (rst_n),
+    .op       (op),
+    .addr     (addr),
+    .wdata    (wdata),
+    .start    (start),
+    .sw_reset (sw_reset),
+    .rdata    (rdata),
+    .done     (done),
+    .busy     (busy),
+    .error    (error),
+    .scl      (scl),
+    .sda      (sda)
 );
 
-// 24CSM01 EEPROM model (A1=0, A2=0 matches CHIP_ADDR=2'b00)
 M24CSM01 u_mem (
     .A1    (1'b0),
     .A2    (1'b0),

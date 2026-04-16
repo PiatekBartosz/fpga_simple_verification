@@ -15,11 +15,11 @@ WDB         = waves.wdb
 all: comp_rtl comp_tb elab run
 
 comp_rtl:
-	xvlog -f $(RTL_FILES) --sv --work $(RTL_LIB)
+	xvlog -f $(RTL_FILES) -sv --work $(RTL_LIB)
 	@echo "\nComp RTL Done!"
 
 comp_tb:
-	xvlog -f $(VERIF_FILES) --sv --work $(TB_LIB)
+	xvlog -f $(VERIF_FILES) -sv --work $(TB_LIB)
 	@echo "\nComp TB Done!"
 
 elab:

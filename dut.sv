@@ -24,6 +24,10 @@ module dut (
 wire scl;
 wire sda;
 
+// Open-drain pull-up: weak '1' so any strong-0 driver (controller or device
+// bufif1) wins, while the bus floats high when both release.
+assign (pull1, highz0) sda = 1'b1;
+
 // Controller drives SCL and manages SDA as open-drain
 controller #(
     .CLK_DIV   (62),

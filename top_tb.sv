@@ -24,7 +24,7 @@ module top_tb (
             end
         end
         timed_out = 1'b1;
-        $display("[TB] TIMEOUT at %0t", $time);
+        $fatal("[TB] TIMEOUT at %0t", $time);
     endtask
 
     task automatic run_op(input logic [2:0] op_in, input logic [16:0] addr_in,
@@ -56,50 +56,46 @@ module top_tb (
         fail_cnt = 0;
         repeat (10) @(posedge clk);
         sif.rst_n <= 1'b1;
-        repeat (15)
-        @(posedge clk);
+        repeat (15) @(posedge clk);
         $display("=== Simulation start ===");
 
         // SW_RESET
         run_op(OP_SW_RESET, '0, '0, rd, fail);
         if (fail) begin
-            $display("[FAIL] SW_RESET");
+            $error("[FAIL] SW_RESET");
             fail_cnt++;
         end else begin
             $display("[PASS] SW_RESET");
         end
-        repeat (15)
-        @(posedge clk);
+        repeat (15) @(posedge clk);
 
         // READ_ID
         run_op(OP_READ_ID, '0, '0, rd, fail);
         if (fail) begin
-            $display("[FAIL] READ_ID");
+            $error("[FAIL] READ_ID");
             fail_cnt++;
         end else if (rd !== 24'h00D0D0) begin
-            $display("[FAIL] READ_ID got=0x%06X expected=0x00D0D0", rd);
+            $error("[FAIL] READ_ID got=0x%06X expected=0x00D0D0", rd);
             fail_cnt++;
         end else begin
             $display("[PASS] READ_ID  ManID=0x%06X", rd);
         end
-        repeat (15)
-        @(posedge clk);
+        repeat (15) @(posedge clk);
 
         // READ_STATUS
         run_op(OP_READ_STATUS, '0, '0, rd, fail);
         if (fail) begin
-            $display("[FAIL] READ_STATUS");
+            $error("[FAIL] READ_STATUS");
             fail_cnt++;
         end else begin
             $display("[PASS] READ_STATUS  rdata=0x%02X", rd[7:0]);
         end
-        repeat (15)
-        @(posedge clk);
+        repeat (15) @(posedge clk);
 
         // WRITE_DATA
         run_op(OP_WRITE_DATA, 17'h0_0010, 8'hA5, rd, fail);
         if (fail) begin
-            $display("[FAIL] WRITE_DATA");
+            $error("[FAIL] WRITE_DATA");
             fail_cnt++;
         end else begin
             $display("[PASS] WRITE_DATA addr=0x00010 data=0xA5");
@@ -109,10 +105,10 @@ module top_tb (
         // READ_DATA
         run_op(OP_READ_DATA, 17'h0_0010, '0, rd, fail);
         if (fail) begin
-            $display("[FAIL] READ_DATA");
+            $error("[FAIL] READ_DATA");
             fail_cnt++;
         end else if (rd[7:0] !== 8'hA5) begin
-            $display("[FAIL] READ_DATA got=0x%02X expected=0xA5", rd[7:0]);
+            $error("[FAIL] READ_DATA got=0x%02X expected=0xA5", rd[7:0]);
             fail_cnt++;
         end else begin
             $display("[PASS] READ_DATA  rdata=0x%02X", rd[7:0]);
@@ -124,7 +120,7 @@ module top_tb (
 
     initial begin
         #200_000_000;
-        $display("[TB] WATCHDOG");
+        $fatal("[TB] WATCHDOG");
         $finish;
     end
 

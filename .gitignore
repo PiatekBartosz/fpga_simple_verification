@@ -4,3 +4,5 @@ xsim.dir
 *.pb
 waves.wdb
 .Xil/*
+cov/*
+sim.wdb

@@ -11,7 +11,14 @@ package mem_ctrl_pkg;
     } op_codes_e;
 
     int WRITE_CYCLE_WAIT = 260_000;
-    int TIMEOUT = 500_000;            
+    int TIMEOUT = 500_000;
+endpackage
+
+package mem_ctrl_const_pkg;
+    logic [23:0] DEVICE_ID = 24'h00D0D0;
+    logic [16:0] RW_ADDRESS = 17'h0_0010;
+    logic [7:0] RW_DATA = 8'hA5;
+
 endpackage
 
 module top_tb (
@@ -77,7 +84,7 @@ module top_tb (
         if (fail) begin
             $error("[FAIL] READ_ID");
             fail_cnt++;
-        end else if (rd !== 24'h00D0D0) begin
+        end else if (rd !== mem_ctrl_const_pkg::DEVICE_ID) begin
             $error("[FAIL] READ_ID got=0x%06X expected=0x00D0D0", rd);
             fail_cnt++;
         end else begin
@@ -96,22 +103,26 @@ module top_tb (
         repeat (15) @(posedge clk);
 
         // WRITE_DATA
-        run_op(mem_ctrl_pkg::OP_WRITE_DATA, 17'h0_0010, 8'hA5, rd, fail);
+        run_op(mem_ctrl_pkg::OP_WRITE_DATA, mem_ctrl_const_pkg::RW_ADDRESS,
+               mem_ctrl_const_pkg::RW_DATA, rd, fail);
         if (fail) begin
             $error("[FAIL] WRITE_DATA");
             fail_cnt++;
         end else begin
-            $display("[PASS] WRITE_DATA addr=0x00010 data=0xA5");
+            $display("[PASS] WRITE_DATA addr=0x%02X  data=0x%02X", mem_ctrl_const_pkg::RW_ADDRESS,
+                     mem_ctrl_const_pkg::RW_DATA);
         end
         repeat (mem_ctrl_pkg::WRITE_CYCLE_WAIT) @(posedge clk);
 
         // READ_DATA
-        run_op(mem_ctrl_pkg::OP_READ_DATA, 17'h0_0010, '0, rd, fail);
+        run_op(mem_ctrl_pkg::OP_READ_DATA, mem_ctrl_const_pkg::RW_ADDRESS,
+               mem_ctrl_const_pkg::RW_DATA, rd, fail);
         if (fail) begin
             $error("[FAIL] READ_DATA");
             fail_cnt++;
-        end else if (rd[7:0] !== 8'hA5) begin
-            $error("[FAIL] READ_DATA got=0x%02X expected=0xA5", rd[7:0]);
+        end else if (rd[7:0] !== mem_ctrl_const_pkg::RW_DATA) begin
+            $error("[FAIL] READ_DATA got=0x%02X expected=0x%02X", rd[7:0],
+                   mem_ctrl_const_pkg::RW_DATA);
             fail_cnt++;
         end else begin
             $display("[PASS] READ_DATA  rdata=0x%02X", rd[7:0]);

@@ -5,3 +5,4 @@ xsim.dir
 waves.wdb
 .Xil/*
 cov/*
+sim.wdb

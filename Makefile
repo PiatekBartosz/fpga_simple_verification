@@ -1,8 +1,7 @@
 ### Options ###
 WAVE ?= 0
 COV  ?= 0
-VERBOSITY ?= UVM_LOW
-TESTNAME ?= FOO
+UVM_VERBOSITY ?= UVM_LOW
 ###############
 
 # --------------------------------------------------------------------------
@@ -47,8 +46,7 @@ ifeq ($(COV),1)
 endif
 
 XSIM_FLAGS := -runall
-XSIM_FLAGS += -testplusarg UVM_VERBOSITY=$(VERBOSITY)
-XSIM_FLAGS += -testplusarg UVM_TESTNAME=$(TESTNAME)
+XSIM_FLAGS += -testplusarg UVM_VERBOSITY=$(UVM_VERBOSITY)
 # FIXME: this flag does not work
 XSIM_FLAGS += -testplusarg UVM_NO_RELNOTES
 ifeq ($(WAVE),1)

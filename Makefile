@@ -1,5 +1,6 @@
 ### Options ###
 WAVE ?= 0
+COV ?= 1
 ###############
 
 TOP         = top

@@ -16,7 +16,7 @@ endpackage
 
 package mem_ctrl_const_pkg;
     logic [23:0] DEVICE_ID = 24'h00D0D0;
-    logic [16:0] RW_ADDRESS = 17'h0_0010;
+    logic [16:0] RW_ADDRESS = $urandom();
     logic [7:0] RW_DATA = 8'hA5;
 
 endpackage

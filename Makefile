@@ -1,6 +1,7 @@
 ### Options ###
 WAVE ?= 0
 COV  ?= 0
+UVM_VERBOSITY ?= UVM_LOW
 ###############
 
 # --------------------------------------------------------------------------
@@ -32,9 +33,10 @@ FORMAT_ARGS = --flagfile=.verilog_format --inplace
 # Flags
 # --------------------------------------------------------------------------
 
-XVLOG_FLAGS := -sv --work $(RTL_LIB)
+XVLOG_FLAGS    := -sv --work $(RTL_LIB)
+XVLOG_TB_FLAGS := -sv --work $(TB_LIB) -L uvm
 
-XELAB_FLAGS := -s $(SIM) -L $(RTL_LIB)
+XELAB_FLAGS := -s $(SIM) -L $(RTL_LIB) -L uvm -timescale 1ns/1ps
 ifeq ($(WAVE),1)
   XELAB_FLAGS += --debug typical
 endif
@@ -44,6 +46,9 @@ ifeq ($(COV),1)
 endif
 
 XSIM_FLAGS := -runall
+XSIM_FLAGS += -testplusarg UVM_VERBOSITY=$(UVM_VERBOSITY)
+# FIXME: this flag does not work
+XSIM_FLAGS += -testplusarg UVM_NO_RELNOTES
 ifeq ($(WAVE),1)
   XSIM_FLAGS += -wdb $(WDB)
 endif
@@ -62,7 +67,7 @@ comp_rtl:
 	@echo "\nComp RTL Done!"
 
 comp_tb:
-	xvlog -f $(VERIF_FILES) -sv --work $(TB_LIB)
+	xvlog -f $(VERIF_FILES) $(XVLOG_TB_FLAGS)
 	@echo "\nComp TB Done!"
 
 elab:

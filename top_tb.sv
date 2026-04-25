@@ -17,7 +17,7 @@ package mem_ctrl_pkg;
     int TIMEOUT = 500_000;
 endpackage
 
-package mem_ctrl_const_pkg;
+package mem_ctrl_test_sequence_pkg;
     logic [23:0] DEVICE_ID = 24'h00D0D0;
     logic [16:0] RW_ADDRESS = $urandom();
     logic [7:0] RW_DATA = 8'hA5;
@@ -86,9 +86,9 @@ module top_tb (
         if (fail) begin
             `uvm_error("TB", "[FAIL] READ_ID")
             fail_cnt++;
-        end else if (rd !== mem_ctrl_const_pkg::DEVICE_ID) begin
+        end else if (rd !== mem_ctrl_test_sequence_pkg::DEVICE_ID) begin
             `uvm_error("TB", $sformatf("[FAIL] READ_ID got=0x%06X expected=0x%06X", rd,
-                                       mem_ctrl_const_pkg::DEVICE_ID))
+                                       mem_ctrl_test_sequence_pkg::DEVICE_ID))
             fail_cnt++;
         end else begin
             `uvm_info("TB", $sformatf("[PASS] READ_ID  ManID=0x%06X", rd), UVM_LOW)
@@ -106,29 +106,29 @@ module top_tb (
         repeat (15) @(posedge clk);
 
         // WRITE_DATA
-        run_op(mem_ctrl_pkg::OP_WRITE_DATA, mem_ctrl_const_pkg::RW_ADDRESS,
-               mem_ctrl_const_pkg::RW_DATA, rd, fail);
+        run_op(mem_ctrl_pkg::OP_WRITE_DATA, mem_ctrl_test_sequence_pkg::RW_ADDRESS,
+               mem_ctrl_test_sequence_pkg::RW_DATA, rd, fail);
         if (fail) begin
             `uvm_error("TB", "[FAIL] WRITE_DATA")
             fail_cnt++;
         end else begin
             `uvm_info("TB", $sformatf(
                       "[PASS] WRITE_DATA addr=0x%05X  data=0x%02X",
-                      mem_ctrl_const_pkg::RW_ADDRESS,
-                      mem_ctrl_const_pkg::RW_DATA
+                      mem_ctrl_test_sequence_pkg::RW_ADDRESS,
+                      mem_ctrl_test_sequence_pkg::RW_DATA
                       ), UVM_LOW)
         end
         repeat (mem_ctrl_pkg::WRITE_CYCLE_WAIT) @(posedge clk);
 
         // READ_DATA
-        run_op(mem_ctrl_pkg::OP_READ_DATA, mem_ctrl_const_pkg::RW_ADDRESS,
-               mem_ctrl_const_pkg::RW_DATA, rd, fail);
+        run_op(mem_ctrl_pkg::OP_READ_DATA, mem_ctrl_test_sequence_pkg::RW_ADDRESS,
+               mem_ctrl_test_sequence_pkg::RW_DATA, rd, fail);
         if (fail) begin
             `uvm_error("TB", "[FAIL] READ_DATA")
             fail_cnt++;
-        end else if (rd[7:0] !== mem_ctrl_const_pkg::RW_DATA) begin
+        end else if (rd[7:0] !== mem_ctrl_test_sequence_pkg::RW_DATA) begin
             `uvm_error("TB", $sformatf("[FAIL] READ_DATA got=0x%02X expected=0x%02X", rd[7:0],
-                                       mem_ctrl_const_pkg::RW_DATA))
+                                       mem_ctrl_test_sequence_pkg::RW_DATA))
             fail_cnt++;
         end else begin
             `uvm_info("TB", $sformatf("[PASS] READ_DATA  rdata=0x%02X", rd[7:0]), UVM_LOW)

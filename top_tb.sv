@@ -1,23 +1,26 @@
 // top_tb.sv
 `timescale 1ns / 1ps
 
+package mem_ctrl_pkg;
+    typedef enum logic [2:0] {
+        OP_READ_ID = 3'b000,
+        OP_READ_STATUS = 3'b001,
+        OP_READ_DATA = 3'b010,
+        OP_WRITE_DATA = 3'b011,
+        OP_SW_RESET = 3'b100
+    } op_codes_e;
+
+    int WRITE_CYCLE_WAIT = 260_000;
+    int TIMEOUT = 500_000;            
+endpackage
+
 module top_tb (
     input logic           clk,
           simple_if.tb_mp sif
 );
-
-    localparam int WRITE_CYCLE_WAIT = 260_000;
-    localparam int TIMEOUT = 500_000;
-
-    localparam logic [2:0] OP_READ_ID = 3'b000;
-    localparam logic [2:0] OP_READ_STATUS = 3'b001;
-    localparam logic [2:0] OP_READ_DATA = 3'b010;
-    localparam logic [2:0] OP_WRITE_DATA = 3'b011;
-    localparam logic [2:0] OP_SW_RESET = 3'b100;
-
     task automatic wait_completion(output logic timed_out);
         timed_out = 1'b0;
-        for (int i = 0; i < TIMEOUT; i++) begin
+        for (int i = 0; i < mem_ctrl_pkg::TIMEOUT; i++) begin
             @(posedge clk);
             if (sif.done || sif.error) begin
                 return;
@@ -60,7 +63,7 @@ module top_tb (
         $display("=== Simulation start ===");
 
         // SW_RESET
-        run_op(OP_SW_RESET, '0, '0, rd, fail);
+        run_op(mem_ctrl_pkg::OP_SW_RESET, '0, '0, rd, fail);
         if (fail) begin
             $error("[FAIL] SW_RESET");
             fail_cnt++;
@@ -70,7 +73,7 @@ module top_tb (
         repeat (15) @(posedge clk);
 
         // READ_ID
-        run_op(OP_READ_ID, '0, '0, rd, fail);
+        run_op(mem_ctrl_pkg::OP_READ_ID, '0, '0, rd, fail);
         if (fail) begin
             $error("[FAIL] READ_ID");
             fail_cnt++;
@@ -83,7 +86,7 @@ module top_tb (
         repeat (15) @(posedge clk);
 
         // READ_STATUS
-        run_op(OP_READ_STATUS, '0, '0, rd, fail);
+        run_op(mem_ctrl_pkg::OP_READ_STATUS, '0, '0, rd, fail);
         if (fail) begin
             $error("[FAIL] READ_STATUS");
             fail_cnt++;
@@ -93,17 +96,17 @@ module top_tb (
         repeat (15) @(posedge clk);
 
         // WRITE_DATA
-        run_op(OP_WRITE_DATA, 17'h0_0010, 8'hA5, rd, fail);
+        run_op(mem_ctrl_pkg::OP_WRITE_DATA, 17'h0_0010, 8'hA5, rd, fail);
         if (fail) begin
             $error("[FAIL] WRITE_DATA");
             fail_cnt++;
         end else begin
             $display("[PASS] WRITE_DATA addr=0x00010 data=0xA5");
         end
-        repeat (WRITE_CYCLE_WAIT) @(posedge clk);
+        repeat (mem_ctrl_pkg::WRITE_CYCLE_WAIT) @(posedge clk);
 
         // READ_DATA
-        run_op(OP_READ_DATA, 17'h0_0010, '0, rd, fail);
+        run_op(mem_ctrl_pkg::OP_READ_DATA, 17'h0_0010, '0, rd, fail);
         if (fail) begin
             $error("[FAIL] READ_DATA");
             fail_cnt++;

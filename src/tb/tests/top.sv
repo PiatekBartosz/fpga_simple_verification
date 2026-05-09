@@ -1,6 +1,10 @@
 // top.sv
 `timescale 1ns / 1ps
 
+`include "uvm_macros.svh"
+import uvm_pkg::*;
+import mem_ctrl_tb_pkg::*;
+
 module top;
 
     logic clk;
@@ -21,9 +25,9 @@ module top;
         .error(sif.error)
     );
 
-    top_tb u_tb (
-        .clk(clk),
-        .sif(sif)
-    );
+    initial begin
+        uvm_config_db #(virtual simple_if)::set(null, "uvm_test_top.*", "vif", sif);
+        run_test();
+    end
 
 endmodule

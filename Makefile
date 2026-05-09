@@ -1,8 +1,9 @@
 ### Options ###
 WAVE ?= 0
 COV  ?= 0
+TOPO ?= 0
 VERBOSITY ?= UVM_LOW
-TESTNAME ?= FOO
+TESTNAME ?= mem_ctrl_test
 ###############
 
 # --------------------------------------------------------------------------
@@ -53,6 +54,9 @@ XSIM_FLAGS += -testplusarg UVM_TESTNAME=$(TESTNAME)
 XSIM_FLAGS += -testplusarg UVM_NO_RELNOTES
 ifeq ($(WAVE),1)
   XSIM_FLAGS += -wdb $(WDB)
+endif
+ifeq ($(TOPO),1)
+  XSIM_FLAGS += -testplusarg PRINT_TOPO
 endif
 
 XCRG_FLAGS := -cov_db_dir $(COV_DIR) -cov_db_name $(COV_DB_NAME) \

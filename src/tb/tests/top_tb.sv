@@ -11,7 +11,7 @@ module top_tb (
     import mem_ctrl_tb_pkg::*;
 
     logic [16:0] rw_addr;
-    logic [7:0]  rw_data;
+    logic [ 7:0] rw_data;
 
     task automatic wait_completion(output logic timed_out);
         timed_out = 1'b0;
@@ -101,8 +101,8 @@ module top_tb (
             `uvm_error("TB", "[FAIL] WRITE_DATA")
             fail_cnt++;
         end else begin
-            `uvm_info("TB", $sformatf("[PASS] WRITE_DATA addr=0x%05X  data=0x%02X", rw_addr,
-                                      rw_data), UVM_LOW)
+            `uvm_info("TB", $sformatf("[PASS] WRITE_DATA addr=0x%05X  data=0x%02X", rw_addr, rw_data
+                      ), UVM_LOW)
         end
         repeat (WRITE_CYCLE_WAIT) @(posedge clk);
 

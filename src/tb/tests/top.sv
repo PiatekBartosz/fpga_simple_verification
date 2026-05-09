@@ -26,7 +26,7 @@ module top;
     );
 
     initial begin
-        uvm_config_db #(virtual simple_if)::set(null, "uvm_test_top.*", "vif", sif);
+        uvm_config_db#(virtual simple_if)::set(null, "uvm_test_top.*", "vif", sif);
         run_test();
     end
 

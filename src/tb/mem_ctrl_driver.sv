@@ -9,7 +9,7 @@ class mem_ctrl_driver extends uvm_driver #(mem_ctrl_seq_item);
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        if (!uvm_config_db #(virtual simple_if)::get(this, "", "vif", vif)) begin
+        if (!uvm_config_db#(virtual simple_if)::get(this, "", "vif", vif)) begin
             `uvm_fatal(get_full_name(), "Could not get virtual interface from uvm_config_db")
         end
     endfunction

@@ -27,7 +27,19 @@ REPORT_DIR  = $(COV_DIR)/report
 # --------------------------------------------------------------------------
 # Formatting
 # --------------------------------------------------------------------------
-FORMAT_SRC  = interfaces.sv controller.sv dut.sv top.sv top_tb.sv
+FORMAT_SRC  = src/rtl/interfaces.sv \
+              src/rtl/controller.sv \
+              src/rtl/dut.sv \
+              src/tb/mem_ctrl_defs.sv \
+              src/tb/mem_ctrl_driver.sv \
+              src/tb/mem_ctrl_env.sv \
+              src/tb/mem_ctrl_sequencer.sv \
+              src/tb/mem_ctrl_tb_pkg.sv \
+              src/tb/seq/mem_ctrl_seq_item.sv \
+              src/tb/seq/mem_ctrl_sequence.sv \
+              src/tb/tests/mem_ctrl_test.sv \
+              src/tb/tests/top.sv \
+              src/tb/tests/top_tb.sv
 FORMAT_TOOL = verible-verilog-format
 FORMAT_ARGS = --flagfile=.verilog_format --inplace
 

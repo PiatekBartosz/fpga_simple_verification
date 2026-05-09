@@ -9,8 +9,9 @@ class mem_ctrl_driver extends uvm_driver #(mem_ctrl_seq_item);
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        if (!uvm_config_db #(virtual simple_if)::get(this, "", "vif", vif))
+        if (!uvm_config_db #(virtual simple_if)::get(this, "", "vif", vif)) begin
             `uvm_fatal(get_full_name(), "Could not get virtual interface from uvm_config_db")
+        end
     endfunction
 
     task reset_phase(uvm_phase phase);
@@ -45,9 +46,12 @@ class mem_ctrl_driver extends uvm_driver #(mem_ctrl_seq_item);
         vif.start <= 1'b0;
         for (int i = 0; i < TIMEOUT; i++) begin
             @(posedge vif.clk);
-            if (vif.done || vif.error) break;
-            if (i == TIMEOUT - 1)
+            if (vif.done || vif.error) begin
+                break;
+            end
+            if (i == TIMEOUT - 1) begin
                 `uvm_fatal(get_full_name(), $sformatf("TIMEOUT at %0t", $time))
+            end
         end
         req.rdata = vif.rdata;
         req.error = vif.error;

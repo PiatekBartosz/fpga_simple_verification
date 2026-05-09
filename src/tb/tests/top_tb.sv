@@ -17,7 +17,9 @@ module top_tb (
         timed_out = 1'b0;
         for (int i = 0; i < TIMEOUT; i++) begin
             @(posedge clk);
-            if (sif.done || sif.error) return;
+            if (sif.done || sif.error) begin
+                return;
+            end
         end
         timed_out = 1'b1;
         `uvm_fatal("TB", $sformatf("TIMEOUT at %0t", $time))

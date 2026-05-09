@@ -14,8 +14,9 @@ class mem_ctrl_test extends uvm_test;
     endfunction
 
     function void start_of_simulation_phase(uvm_phase phase);
-        if ($test$plusargs("PRINT_TOPO"))
+        if ($test$plusargs("PRINT_TOPO")) begin
             uvm_top.print_topology();
+        end
     endfunction
 
     task main_phase(uvm_phase phase);

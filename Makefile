@@ -35,7 +35,7 @@ FORMAT_ARGS = --flagfile=.verilog_format --inplace
 # --------------------------------------------------------------------------
 
 XVLOG_FLAGS    := -sv --work $(RTL_LIB)
-XVLOG_TB_FLAGS := -sv --work $(TB_LIB) -L uvm
+XVLOG_TB_FLAGS := -sv --work $(TB_LIB) -L uvm -L $(RTL_LIB)
 
 XELAB_FLAGS := -s $(SIM) -L $(RTL_LIB) -L uvm -timescale 1ns/1ps
 ifeq ($(WAVE),1)

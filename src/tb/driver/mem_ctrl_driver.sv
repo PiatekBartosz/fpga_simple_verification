@@ -37,6 +37,7 @@ class mem_ctrl_driver extends uvm_driver #(mem_ctrl_seq_item);
     endtask
 
     task drive_item(mem_ctrl_seq_item req);
+        `uvm_info(get_full_name(), $sformatf("Driving op=%s addr=0x%05X wdata=0x%02X", req.op.name(), req.addr, req.wdata), UVM_MEDIUM)
         @(posedge vif.clk);
         vif.op    <= req.op;
         vif.addr  <= req.addr;
@@ -55,5 +56,6 @@ class mem_ctrl_driver extends uvm_driver #(mem_ctrl_seq_item);
         end
         req.rdata = vif.rdata;
         req.error = vif.error;
+        `uvm_info(get_full_name(), $sformatf("Done: rdata=0x%06X error=%0b", req.rdata, req.error), UVM_HIGH)
     endtask
 endclass

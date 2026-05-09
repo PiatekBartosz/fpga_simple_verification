@@ -72,6 +72,7 @@ class mem_ctrl_sequence extends uvm_sequence #(mem_ctrl_seq_item);
             `uvm_info(get_name(), $sformatf("[PASS] WRITE_DATA addr=0x%05X data=0x%02X", rw_addr, rw_data), UVM_LOW)
         end
 
+        //FIXME: somehow broken the read
         // READ_DATA - addr constrained to match the write
         send_read_data(rw_addr, item);
         if (item.error) begin

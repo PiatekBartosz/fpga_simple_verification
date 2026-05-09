@@ -57,5 +57,7 @@ class mem_ctrl_driver extends uvm_driver #(mem_ctrl_seq_item);
         req.rdata = vif.rdata;
         req.error = vif.error;
         `uvm_info(get_full_name(), $sformatf("Done: rdata=0x%06X error=%0b", req.rdata, req.error), UVM_HIGH)
+        if (req.op == OP_WRITE_DATA && !req.error)
+            repeat (WRITE_CYCLE_WAIT) @(posedge vif.clk);
     endtask
 endclass

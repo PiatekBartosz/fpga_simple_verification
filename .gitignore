@@ -6,3 +6,4 @@ waves.wdb
 .Xil/*
 cov/*
 sim.wdb
+xsim_coverage_report/

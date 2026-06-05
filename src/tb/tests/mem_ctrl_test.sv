@@ -10,7 +10,11 @@ class mem_ctrl_test extends uvm_test;
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
-        m_cfg = mem_ctrl_config::type_id::create("m_cfg");
+        m_cfg                   = mem_ctrl_config::type_id::create("m_cfg");
+        m_cfg.scoreboard_enable = 1;
+`ifdef COV
+        m_cfg.coverage_enable = 1;
+`endif
         uvm_config_db#(mem_ctrl_config)::set(this, "*", "cfg", m_cfg);
         m_env = mem_ctrl_env::type_id::create("m_env", this);
         uvm_root::get().set_timeout(10ms, 1);

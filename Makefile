@@ -58,6 +58,7 @@ ifeq ($(WAVE),1)
   XELAB_FLAGS += --debug typical
 endif
 ifeq ($(COV),1)
+  XVLOG_TB_FLAGS += --define COV
   XELAB_FLAGS += --debug typical -cc_type sbct \
                  -cov_db_dir $(COV_DIR) -cov_db_name $(COV_DB_NAME)
 endif
@@ -75,7 +76,8 @@ ifeq ($(TOPO),1)
 endif
 
 XCRG_FLAGS := -cov_db_dir $(COV_DIR) -cov_db_name $(COV_DB_NAME) \
-              -cc_report $(REPORT_DIR)
+              -report_dir $(REPORT_DIR) \
+              -report_format all
 
 # --------------------------------------------------------------------------
 
@@ -115,8 +117,8 @@ report:
 ifeq ($(COV),1)
 	@mkdir -p $(REPORT_DIR)
 	xcrg $(XCRG_FLAGS)
-	@echo "\nHTML report : $(REPORT_DIR)/dashboard.html"
-	@echo "Text report : $(REPORT_DIR)/xcrg_report.txt"
+	@echo "\nCC report : $(REPORT_DIR)/codeCoverageReport/dashboard.html"
+	@echo "FC report : $(REPORT_DIR)/functionalCoverageReport/dashboard.html"
 else
 	@echo "\nNothing to report -- re-run with COV=1"
 endif

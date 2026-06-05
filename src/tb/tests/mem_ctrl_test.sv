@@ -1,7 +1,8 @@
 class mem_ctrl_test extends uvm_test;
     `uvm_component_utils(mem_ctrl_test)
 
-    mem_ctrl_env m_env;
+    mem_ctrl_env    m_env;
+    mem_ctrl_config m_cfg;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
@@ -9,14 +10,16 @@ class mem_ctrl_test extends uvm_test;
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
+        m_cfg = mem_ctrl_config::type_id::create("m_cfg");
+        uvm_config_db#(mem_ctrl_config)::set(this, "*", "cfg", m_cfg);
         m_env = mem_ctrl_env::type_id::create("m_env", this);
         uvm_root::get().set_timeout(10ms, 1);
     endfunction
 
-    function void start_of_simulation_phase(uvm_phase phase);
-        if ($test$plusargs("PRINT_TOPO")) begin
-            uvm_top.print_topology();
-        end
+    function void end_of_elaboration_phase(uvm_phase phase);
+        super.end_of_elaboration_phase(phase);
+        uvm_top.print_topology();
+        m_cfg.print();
     endfunction
 
     task main_phase(uvm_phase phase);

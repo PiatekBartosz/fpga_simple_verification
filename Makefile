@@ -27,19 +27,12 @@ REPORT_DIR  = $(COV_DIR)/report
 # --------------------------------------------------------------------------
 # Formatting
 # --------------------------------------------------------------------------
-FORMAT_SRC  = src/rtl/interfaces.sv \
-              src/rtl/controller.sv \
-              src/rtl/dut.sv \
-              src/tb/mem_ctrl_defs.sv \
-              src/tb/mem_ctrl_driver.sv \
-              src/tb/mem_ctrl_env.sv \
-              src/tb/mem_ctrl_sequencer.sv \
-              src/tb/mem_ctrl_tb_pkg.sv \
-              src/tb/seq/mem_ctrl_seq_item.sv \
-              src/tb/seq/mem_ctrl_sequence.sv \
-              src/tb/tests/mem_ctrl_test.sv \
-              src/tb/tests/top.sv \
-              src/tb/tests/top_tb.sv
+# format works file-by-file (verible does not follow `include`s),
+# so unlike compilation it needs every source listed
+# external/vendor sources are excluded from formatting
+FORMAT_IGNORE = src/rtl/24CSM01.v
+FORMAT_SRC    = $(filter-out $(FORMAT_IGNORE), \
+                $(wildcard src/rtl/*.sv src/rtl/*.v src/tb/*.sv src/tb/seq/*.sv src/tb/tests/*.sv))
 FORMAT_TOOL = verible-verilog-format
 FORMAT_ARGS = --flagfile=.verilog_format --inplace
 
@@ -55,6 +48,7 @@ ifeq ($(WAVE),1)
   XELAB_FLAGS += --debug typical
 endif
 ifeq ($(COV),1)
+  XVLOG_TB_FLAGS += --define COV
   XELAB_FLAGS += --debug typical -cc_type sbct \
                  -cov_db_dir $(COV_DIR) -cov_db_name $(COV_DB_NAME)
 endif
@@ -72,7 +66,8 @@ ifeq ($(TOPO),1)
 endif
 
 XCRG_FLAGS := -cov_db_dir $(COV_DIR) -cov_db_name $(COV_DB_NAME) \
-              -cc_report $(REPORT_DIR)
+              -report_dir $(REPORT_DIR) \
+              -report_format all
 
 # --------------------------------------------------------------------------
 
@@ -112,8 +107,8 @@ report:
 ifeq ($(COV),1)
 	@mkdir -p $(REPORT_DIR)
 	xcrg $(XCRG_FLAGS)
-	@echo "\nHTML report : $(REPORT_DIR)/dashboard.html"
-	@echo "Text report : $(REPORT_DIR)/xcrg_report.txt"
+	@echo "\nCC report : $(REPORT_DIR)/codeCoverageReport/dashboard.html"
+	@echo "FC report : $(REPORT_DIR)/functionalCoverageReport/dashboard.html"
 else
 	@echo "\nNothing to report -- re-run with COV=1"
 endif

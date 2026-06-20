@@ -1,0 +1,6 @@
+[option]
+exclude_ext = ["core_tb.sv"]
+
+[[source]]
+include = ["rtl/**/*.sv", "rtl/**/*.v"]
+

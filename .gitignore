@@ -7,3 +7,7 @@ waves.wdb
 cov/*
 sim.wdb
 xsim_coverage_report/
+coco_tb/.venv/*
+coco_tb/sim_build/*
+coco_tb/__pycache__/*
+coco_tb/results.xml

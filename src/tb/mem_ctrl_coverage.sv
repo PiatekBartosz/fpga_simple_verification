@@ -11,10 +11,7 @@ class mem_ctrl_coverage extends uvm_subscriber #(mem_ctrl_seq_item);
             bins write_data = {OP_WRITE_DATA};
             bins sw_reset = {OP_SW_RESET};
         }
-        cp_error: coverpoint trans.error {
-            bins no_error = {1'b0};
-            bins error    = {1'b1};
-        }
+        cp_error: coverpoint trans.error {bins no_error = {1'b0}; bins error = {1'b1};}
         cp_addr: coverpoint trans.addr {
             bins low_range = {[17'h0_0000 : 17'h0_7FFF]};
             bins high_range = {[17'h0_8000 : 17'h1_FFFF]};

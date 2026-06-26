@@ -35,8 +35,8 @@ class mem_ctrl_random_test extends uvm_test;
             seq = mem_ctrl_rand_seq::type_id::create($sformatf("seq_%0d", i));
             if (!seq.randomize()) `uvm_fatal(get_name(), "seq randomization failed")
             `uvm_info(get_name(), $sformatf(
-                      "--- Run %0d/%0d: data_length=%s ---",
-                      i + 1, NUM_RUNS, seq.data_length.name()), UVM_NONE)
+                      "--- Run %0d/%0d: data_length=%s ---", i + 1, NUM_RUNS, seq.data_length.name()
+                      ), UVM_NONE)
             seq.start(m_env.m_seqr);
         end
 

@@ -20,7 +20,11 @@ class mem_ctrl_write_readback_seq extends uvm_sequence #(mem_ctrl_seq_item);
                             output mem_ctrl_seq_item item);
         item = mem_ctrl_seq_item::type_id::create("item");
         start_item(item);
-        if (!item.randomize() with {op == OP_WRITE_DATA; addr == wr_addr; wdata == wr_data;})
+        if (!item.randomize() with {
+                op == OP_WRITE_DATA;
+                addr == wr_addr;
+                wdata == wr_data;
+            })
             `uvm_fatal(get_name(), "Randomization failed")
         item.skip_write_wait = 1;
         finish_item(item);
@@ -29,7 +33,10 @@ class mem_ctrl_write_readback_seq extends uvm_sequence #(mem_ctrl_seq_item);
     task send_read_at(input logic [16:0] rd_addr, output mem_ctrl_seq_item item);
         item = mem_ctrl_seq_item::type_id::create("item");
         start_item(item);
-        if (!item.randomize() with {op == OP_READ_DATA; addr == rd_addr;})
+        if (!item.randomize() with {
+                op == OP_READ_DATA;
+                addr == rd_addr;
+            })
             `uvm_fatal(get_name(), "Randomization failed")
         finish_item(item);
     endtask
@@ -40,8 +47,7 @@ class mem_ctrl_write_readback_seq extends uvm_sequence #(mem_ctrl_seq_item);
         for (int i = 0; i < MAX_POLL; i++) begin
             send_op(OP_READ_STATUS, item);
             if (!item.error) begin
-                `uvm_info(get_name(), $sformatf(
-                          "Device ready after %0d poll(s)", i + 1), UVM_LOW)
+                `uvm_info(get_name(), $sformatf("Device ready after %0d poll(s)", i + 1), UVM_LOW)
                 return;
             end
             `uvm_info(get_name(), $sformatf("Busy polling [%0d]...", i), UVM_HIGH)
@@ -50,10 +56,10 @@ class mem_ctrl_write_readback_seq extends uvm_sequence #(mem_ctrl_seq_item);
     endtask
 
     task body();
-        mem_ctrl_seq_item item;
-        logic [16:0]      wr_addr;
-        logic [ 7:0]      wr_data;
-        int               fail_cnt;
+        mem_ctrl_seq_item        item;
+        logic             [16:0] wr_addr;
+        logic             [ 7:0] wr_data;
+        int                      fail_cnt;
 
         fail_cnt = 0;
         `uvm_info(get_name(), "=== Write-readback with busy polling start ===", UVM_NONE)
@@ -68,9 +74,8 @@ class mem_ctrl_write_readback_seq extends uvm_sequence #(mem_ctrl_seq_item);
         // Randomise address and data
         void'(std::randomize(wr_addr));
         void'(std::randomize(wr_data));
-        `uvm_info(get_name(), $sformatf(
-                  "Writing addr=0x%05X data=0x%02X (no post-write wait)", wr_addr, wr_data),
-                  UVM_LOW)
+        `uvm_info(get_name(), $sformatf("Writing addr=0x%05X data=0x%02X (no post-write wait)",
+                                        wr_addr, wr_data), UVM_LOW)
 
         // Write without waiting — driver returns as soon as done signal is seen
         send_write_no_wait(wr_addr, wr_data, item);
@@ -88,13 +93,12 @@ class mem_ctrl_write_readback_seq extends uvm_sequence #(mem_ctrl_seq_item);
             `uvm_error(get_name(), "[FAIL] READ_DATA returned error")
             fail_cnt++;
         end else if (item.rdata[7:0] !== wr_data) begin
-            `uvm_error(get_name(), $sformatf(
-                       "[FAIL] READ_DATA: got=0x%02X expected=0x%02X",
-                       item.rdata[7:0], wr_data))
+            `uvm_error(get_name(), $sformatf("[FAIL] READ_DATA: got=0x%02X expected=0x%02X",
+                                             item.rdata[7:0], wr_data))
             fail_cnt++;
-        end else `uvm_info(get_name(), $sformatf(
-                           "[PASS] READ_DATA: addr=0x%05X data=0x%02X", wr_addr, wr_data),
-                           UVM_LOW)
+        end else
+            `uvm_info(get_name(), $sformatf(
+                      "[PASS] READ_DATA: addr=0x%05X data=0x%02X", wr_addr, wr_data), UVM_LOW)
 
         `uvm_info(get_name(), $sformatf("=== %0d test(s) failed ===", fail_cnt), UVM_NONE)
     endtask

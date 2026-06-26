@@ -6,6 +6,7 @@ class mem_ctrl_seq_item extends uvm_sequence_item;
     rand logic      [ 7:0] wdata;
     logic           [23:0] rdata;
     logic                  error;
+    bit                    skip_write_wait;
 
     function new(string name = "mem_ctrl_seq_item");
         super.new(name);

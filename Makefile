@@ -3,7 +3,8 @@ WAVE ?= 0
 COV  ?= 0
 TOPO ?= 0
 VERBOSITY ?= UVM_LOW
-TESTNAME ?= mem_ctrl_test
+TESTNAME   ?= mem_ctrl_test
+SEED       ?= default
 ###############
 
 # --------------------------------------------------------------------------
@@ -21,8 +22,9 @@ WDB         = waves.wdb
 # Coverage
 # --------------------------------------------------------------------------
 COV_DIR     = cov
-COV_DB_NAME = coverage
-REPORT_DIR  = $(COV_DIR)/report
+COV_DB_DIR ?= $(COV_DIR)
+COV_DB_NAME ?= coverage
+REPORT_DIR  = $(COV_DB_DIR)/report
 
 # --------------------------------------------------------------------------
 # Formatting
@@ -50,7 +52,7 @@ endif
 ifeq ($(COV),1)
   XVLOG_TB_FLAGS += --define COV
   XELAB_FLAGS += --debug typical -cc_type sbct \
-                 -cov_db_dir $(COV_DIR) -cov_db_name $(COV_DB_NAME)
+                 -cov_db_dir $(COV_DB_DIR) -cov_db_name $(COV_DB_NAME)
 endif
 
 XSIM_FLAGS := -runall
@@ -58,6 +60,9 @@ XSIM_FLAGS += -testplusarg UVM_VERBOSITY=$(VERBOSITY)
 XSIM_FLAGS += -testplusarg UVM_TESTNAME=$(TESTNAME)
 # FIXME: this flag does not work
 XSIM_FLAGS += -testplusarg UVM_NO_RELNOTES
+ifneq ($(SEED),default)
+  XSIM_FLAGS += -sv_seed $(SEED)
+endif
 ifeq ($(WAVE),1)
   XSIM_FLAGS += -wdb $(WDB)
 endif
@@ -65,13 +70,13 @@ ifeq ($(TOPO),1)
   XSIM_FLAGS += -testplusarg PRINT_TOPO
 endif
 
-XCRG_FLAGS := -cov_db_dir $(COV_DIR) -cov_db_name $(COV_DB_NAME) \
+XCRG_FLAGS := -cov_db_dir $(COV_DB_DIR) -cov_db_name $(COV_DB_NAME) \
               -report_dir $(REPORT_DIR) \
               -report_format all
 
 # --------------------------------------------------------------------------
 
-.PHONY: all comp_rtl comp_tb elab run waves report snapshot format clean
+.PHONY: all comp_rtl comp_tb elab run waves report snapshot format clean sanity regress
 
 all: comp_rtl comp_tb elab run
 
@@ -85,7 +90,7 @@ comp_tb:
 
 elab:
 ifeq ($(COV),1)
-	@mkdir -p $(COV_DIR)
+	@mkdir -p $(COV_DB_DIR)
 endif
 	xelab $(TB_LIB).$(TOP) $(XELAB_FLAGS)
 	@echo "\nElab Done!"
@@ -96,7 +101,7 @@ ifeq ($(WAVE),1)
 	@echo "\nWaveforms saved to $(WDB)"
 endif
 ifeq ($(COV),1)
-	@echo "\nCoverage database written to: $(COV_DIR)/$(COV_DB_NAME)"
+	@echo "\nCoverage database written to: $(COV_DB_DIR)/$(COV_DB_NAME)"
 endif
 	@echo "\nSim Done!"
 
@@ -116,6 +121,12 @@ endif
 format:
 	$(FORMAT_TOOL) $(FORMAT_ARGS) $(FORMAT_SRC)
 	@echo "\nFormat Done!"
+
+sanity:
+	python3 regression/run_regression.py --sanity
+
+regress:
+	python3 regression/run_regression.py
 
 clean:
 	rm -rf xsim.dir *.log *.jou *.pb *.wdb *.wcfg $(COV_DIR)

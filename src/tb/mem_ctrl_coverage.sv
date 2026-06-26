@@ -11,13 +11,9 @@ class mem_ctrl_coverage extends uvm_subscriber #(mem_ctrl_seq_item);
             bins write_data = {OP_WRITE_DATA};
             bins sw_reset = {OP_SW_RESET};
         }
-        // no error injection in the sequence (yet), so an error transaction is
-        // always a failure -> illegal_bins makes this an active check.
-        // TODO: if error injection is added (undefined opcode -> ST_ERROR),
-        // revert to `bins error = {1'b1}` and add negative-test handling in
-        // the sequence + scoreboard so error=1 becomes an expected/pass case.
         cp_error: coverpoint trans.error {
-            bins no_error = {1'b0}; illegal_bins error = {1'b1};
+            bins no_error = {1'b0};
+            bins error    = {1'b1};
         }
         cp_addr: coverpoint trans.addr {
             bins low_range = {[17'h0_0000 : 17'h0_7FFF]};

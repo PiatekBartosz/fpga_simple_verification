@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+"""Regression runner for mem_ctrl UVM environment.
+
+Usage:
+    python3 regression/run_regression.py           # full regression
+    python3 regression/run_regression.py --sanity  # sanity test only
+    python3 regression/run_regression.py --no-cov  # disable coverage
+"""
+
 import argparse
 import subprocess
 import sys
@@ -17,6 +26,8 @@ TESTS = [
     {"id": "error_injection", "testname": "mem_ctrl_error_injection_test","cov": True},
 ]
 
+COV_DB_DIR = str(REPO_ROOT / "cov" / "regression")
+
 
 def is_pass(log_path):
     for line in log_path.read_text().splitlines():
@@ -30,42 +41,63 @@ def is_pass(log_path):
     return True
 
 
-def run_test(entry, no_cov=False):
-    cov = entry.get("cov", False) and not no_cov
-    seed = entry.get("seed")
+def make(targets, extra=None):
+    cmd = ["make", "-C", str(REPO_ROOT)] + targets + (extra or [])
+    result = subprocess.run(cmd)
+    return result.returncode == 0
 
-    cmd = ["make", "-C", str(REPO_ROOT), "all",
-           f"TESTNAME={entry['testname']}",
-           f"COV={1 if cov else 0}"]
+
+def compile_once(cov):
+    print(f"\n>>> Compiling (COV={int(cov)})...")
+    extra = [f"COV={int(cov)}"]
     if cov:
-        cmd += [f"COV_DB_DIR={REPO_ROOT}/cov/{entry['id']}", "COV_DB_NAME=coverage"]
+        extra += [f"COV_DB_DIR={COV_DB_DIR}", "COV_DB_NAME=coverage"]
+    if not make(["comp_rtl", "comp_tb", "elab"], extra):
+        print("ERROR: compilation/elaboration failed")
+        sys.exit(1)
+
+
+def run_test(entry):
+    seed = entry.get("seed")
+    extra = [f"TESTNAME={entry['testname']}"]
     if seed is not None:
-        cmd.append(f"SEED={seed}")
+        extra.append(f"SEED={seed}")
 
     log_path = REPO_ROOT / "regression" / f"{entry['id']}.log"
     t0 = time.time()
     with open(log_path, "w") as f:
-        result = subprocess.run(cmd, stdout=f, stderr=subprocess.STDOUT)
+        result = subprocess.run(
+            ["make", "-C", str(REPO_ROOT), "run"] + extra,
+            stdout=f,
+            stderr=subprocess.STDOUT,
+        )
     elapsed = time.time() - t0
-
     passed = result.returncode == 0 and is_pass(log_path)
     return "PASS" if passed else "FAIL", elapsed
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sanity", action="store_true", help="Run sanity test only")
-    parser.add_argument("--no-cov", action="store_true", help="Disable coverage for all tests")
+    parser.add_argument("--sanity", action="store_true")
+    parser.add_argument("--no-cov", action="store_true")
     args = parser.parse_args()
 
     tests = [t for t in TESTS if not args.sanity or t.get("sanity")]
 
+    no_cov = [t for t in tests if not t.get("cov") or args.no_cov]
+    with_cov = [t for t in tests if t.get("cov") and not args.no_cov]
+
     results = []
-    for entry in tests:
-        print(f"\n[{entry['id']}] {entry['testname']}")
-        status, elapsed = run_test(entry, no_cov=args.no_cov)
-        results.append((entry["id"], status, elapsed))
-        print(f"  => {status} ({elapsed:.1f}s)")
+
+    for group, cov in [(no_cov, False), (with_cov, True)]:
+        if not group:
+            continue
+        compile_once(cov)
+        for entry in group:
+            print(f"\n[{entry['id']}]")
+            status, elapsed = run_test(entry)
+            results.append((entry["id"], status, elapsed))
+            print(f"  => {status} ({elapsed:.1f}s)")
 
     print(f"\n{'='*48}")
     print(f"  {'ID':<24} {'STATUS':<8} {'TIME':>6}")

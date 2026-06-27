@@ -77,10 +77,9 @@ module controller #(
     logic [7:0] rx_shift, rx_latch, rx_byte1, rx_byte2;
     logic [3:0] bit_idx, seq_step, sr_clocks;
 
-    // Build a device-address control byte:
-    //   eeprom=0 -> 1010 | eeprom=1 -> 1011
+
     function automatic logic [7:0] ctrl_byte(input logic eeprom, input logic page, input logic rw);
-        return {3'b101, eeprom, page, CHIP_ADDR[1], CHIP_ADDR[0], rw};
+        return {3'b101, eeprom, CHIP_ADDR[1], CHIP_ADDR[0], page, rw};
     endfunction
 
     function automatic logic [7:0] first_ctrl(input logic [2:0] op_in, input logic [16:0] addr_in);

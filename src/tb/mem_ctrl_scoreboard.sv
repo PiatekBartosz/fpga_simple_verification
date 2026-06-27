@@ -44,6 +44,11 @@ class mem_ctrl_scoreboard extends uvm_scoreboard;
     endfunction
 
     function void check_write_data(mem_ctrl_seq_item item);
+        if (item.error) begin
+            `uvm_info(get_full_name(), $sformatf("[SB] Skipping failed WRITE_DATA at addr=0x%05X",
+                                                 item.addr), UVM_LOW)
+            return;
+        end
         mem_model[item.addr] = item.wdata;
         `uvm_info(get_full_name(), $sformatf(
                   "[SB] WRITE_DATA stored: addr=0x%05X data=0x%02X", item.addr, item.wdata),
@@ -52,6 +57,11 @@ class mem_ctrl_scoreboard extends uvm_scoreboard;
 
     function void check_read_data(mem_ctrl_seq_item item);
         logic [7:0] expected;
+        if (item.error) begin
+            `uvm_info(get_full_name(), $sformatf("[SB] Skipping failed READ_DATA at addr=0x%05X",
+                                                 item.addr), UVM_LOW)
+            return;
+        end
         expected = mem_model.exists(item.addr) ? mem_model[item.addr] : 8'hFF;
         if (item.rdata[7:0] !== expected) begin
             `uvm_error(get_full_name(),

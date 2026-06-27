@@ -48,7 +48,7 @@ class mem_ctrl_driver extends uvm_driver #(mem_ctrl_seq_item);
         vif.start <= 1'b0;
         for (int i = 0; i < TIMEOUT; i++) begin
             @(posedge vif.clk);
-            if (vif.done || vif.error) begin
+            if (vif.done) begin
                 break;
             end
             if (i == TIMEOUT - 1) begin
@@ -59,6 +59,7 @@ class mem_ctrl_driver extends uvm_driver #(mem_ctrl_seq_item);
         req.error = vif.error;
         `uvm_info(get_full_name(), $sformatf("Done: rdata=0x%06X error=%0b", req.rdata, req.error),
                   UVM_HIGH)
-        if (req.op == OP_WRITE_DATA && !req.error) repeat (WRITE_CYCLE_WAIT) @(posedge vif.clk);
+        if (req.op == OP_WRITE_DATA && !req.error && !req.skip_write_wait)
+            repeat (WRITE_CYCLE_WAIT) @(posedge vif.clk);
     endtask
 endclass
